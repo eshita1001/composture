@@ -1,0 +1,47 @@
+{
+  "name": "composture",
+  "productName": "Composture",
+  "version": "1.0.0",
+  "description": "A posture-detection desktop shrimp buddy — sit up straight or you'll cook him.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Eshita Akella",
+  "license": "ISC",
+  "type": "commonjs",
+  "build": {
+    "appId": "com.eshitaakella.composture",
+    "productName": "Composture",
+    "files": [
+      "main.js",
+      "index.html",
+      "history.html",
+      "sketch.js",
+      "lib/**",
+      "sounds/**",
+      "shrimp1.png",
+      "shrimp2.png",
+      "shrimp3.png"
+    ],
+    "mac": {
+      "category": "public.app-category.healthcare-fitness",
+      "icon": "build/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "extendInfo": {
+        "NSCameraUsageDescription": "Composture uses your webcam locally to detect your posture. No video ever leaves your Mac.",
+        "LSUIElement": true
+      }
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3"
+  }
+}

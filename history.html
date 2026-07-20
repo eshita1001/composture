@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Composture — Sessions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --coral: #ff6b4a;
+      --warn: #e8452a;
+      --paper: #fff8f0;
+      --ink: #3d2b24;
+      --border: #f0dcc9;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Fredoka", sans-serif;
+      color: var(--ink);
+      background: #eaf4f4;
+      background: linear-gradient(160deg, #eff6f4 0%, #fbf1e9 100%);
+    }
+    body { padding: 22px 22px 90px; }
+    header h1 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 26px;
+      letter-spacing: 0.2px;
+    }
+    header p {
+      margin: 4px 0 18px;
+      font-weight: 300;
+      font-size: 14px;
+      opacity: 0.75;
+    }
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .tile {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: 0 6px 16px rgba(61, 43, 36, 0.08);
+    }
+    .tile .num { font-size: 24px; font-weight: 600; }
+    .tile .num.accent { color: var(--warn); }
+    .tile .lbl { font-size: 13px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+
+    .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .row {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 10px 16px;
+      box-shadow: 0 3px 10px rgba(61, 43, 36, 0.05);
+      /* fixed columns => the pills line up across every row */
+      display: grid;
+      grid-template-columns: 1fr 100px 92px;
+      align-items: center;
+      column-gap: 8px;
+    }
+    .row .when { font-weight: 500; font-size: 15px; }
+    .row .meta { font-weight: 300; font-size: 13px; opacity: 0.75; margin-top: 1px; }
+    .chip {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 5px 0;
+      border-radius: 999px;
+      white-space: nowrap;
+      text-align: center; /* chip fills its grid cell, text centered */
+    }
+    .chip.cooked { background: var(--coral); color: var(--ink); }
+    .chip.best { background: rgba(61, 43, 36, 0.08); }
+
+    .empty {
+      text-align: center;
+      opacity: 0.6;
+      font-weight: 300;
+      padding: 40px 10px;
+      font-size: 15px;
+    }
+
+    footer {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      padding: 14px 22px;
+      display: flex;
+      justify-content: flex-end;
+      background: linear-gradient(to top, rgba(251,241,233,0.96), rgba(251,241,233,0));
+    }
+    #clear {
+      font-family: "Fredoka", sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 9px 18px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(61, 43, 36, 0.12);
+    }
+    #clear:hover { background: #fff; }
+    #clear:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+    #clear:disabled { opacity: 0.4; cursor: default; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🦐 your sessions</h1>
+    <p>how well you've been holding it together</p>
+  </header>
+
+  <section class="tiles" id="tiles" aria-label="Summary"></section>
+  <ul class="list" id="list" aria-label="Sessions"></ul>
+
+  <footer>
+    <button id="clear">clear history</button>
+  </footer>
+
+  <script>
+    let ipcRenderer = null;
+    try { ipcRenderer = require("electron").ipcRenderer; } catch (e) {}
+
+    function fmtDur(ms) {
+      let s = Math.floor(ms / 1000), m = Math.floor(s / 60);
+      s = s % 60;
+      return m + ":" + String(s).padStart(2, "0");
+    }
+    function fmtTotal(ms) {
+      let s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      return h > 0 ? h + "h " + m + "m" : m + "m " + (s % 60) + "s";
+    }
+    function fmtWhen(ts) {
+      return new Date(ts).toLocaleString([], {
+        weekday: "short", month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit",
+      });
+    }
+
+    function render(history) {
+      history = history || [];
+      const tiles = document.getElementById("tiles");
+      const list = document.getElementById("list");
+      const clearBtn = document.getElementById("clear");
+
+      const totalTime = history.reduce((a, r) => a + (r.durationMs || 0), 0);
+      const totalCooked = history.reduce((a, r) => a + (r.cookedCount || 0), 0);
+      const bestEver = history.reduce((a, r) => Math.max(a, r.bestAliveMs || 0), 0);
+
+      tiles.innerHTML = [
+        ["" + history.length, "sessions", false],
+        [fmtTotal(totalTime), "total time", false],
+        ["" + totalCooked + "×", "times cooked", true],
+        [fmtDur(bestEver), "best streak", false],
+      ].map(([num, lbl, accent]) =>
+        `<div class="tile"><div class="num ${accent ? "accent" : ""}">${num}</div><div class="lbl">${lbl}</div></div>`
+      ).join("");
+
+      if (history.length === 0) {
+        list.innerHTML = `<li class="empty">no sessions yet —<br/>sit up straight and start one 🦐</li>`;
+        clearBtn.disabled = true;
+        return;
+      }
+      clearBtn.disabled = false;
+
+      list.innerHTML = history.map((r) => `
+        <li class="row">
+          <div class="left">
+            <div class="when">${fmtWhen(r.date)}</div>
+            <div class="meta">lasted ${fmtDur(r.durationMs || 0)}</div>
+          </div>
+          <span class="chip cooked">cooked ${r.cookedCount || 0}×</span>
+          <span class="chip best">best ${fmtDur(r.bestAliveMs || 0)}</span>
+        </li>
+      `).join("");
+    }
+
+    window.render = render;
+    render([]); // default until data arrives
+    if (ipcRenderer) {
+      ipcRenderer.on("history-data", (e, history) => render(history));
+      document.getElementById("clear").addEventListener("click", () => {
+        ipcRenderer.send("clear-history");
+      });
+      ipcRenderer.send("history-ready"); // ask main to send the data
+    }
+  </script>
+</body>
+</html>

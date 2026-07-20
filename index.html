@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Composture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <script src="lib/p5.min.js"></script>
+  <script src="lib/ml5.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      cursor: default;
+      font-family: "Fredoka", sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #err {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      font: 12px monospace;
+      color: #fff;
+      background: rgba(180, 30, 30, 0.92);
+      padding: 8px;
+      white-space: pre-wrap;
+      display: none;
+      z-index: 9999;
+    }
+
+    #buttons {
+      position: fixed;
+      bottom: 12px;
+      left: 14px;
+      text-align: left;
+      z-index: 10;
+    }
+
+    /* coral pill button — cream shadow, breathing, hover-grow, press-down.
+       Label uses palette brown #3D2B24 on coral #FF6B4A ≈ 4.75:1 (passes AA). */
+    #buttons button {
+      font-family: "Fredoka", sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #3D2B24;
+      background: #FF6B4A;
+      border: 1px solid rgba(232, 69, 42, 0.55);
+      border-radius: 999px;
+      padding: 11px 22px;
+      min-height: 44px;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      box-shadow: 0 6px 16px rgba(232, 69, 42, 0.28);
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.16s ease, background 0.16s ease;
+      animation: breathe 3.4s ease-in-out infinite;
+    }
+    #startBtn:hover,
+    #endBtn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 9px 22px rgba(232, 69, 42, 0.36);
+      animation-play-state: paused;
+    }
+    #startBtn:active,
+    #endBtn:active {
+      transform: scale(0.95);
+      box-shadow: 0 4px 10px rgba(232, 69, 42, 0.3);
+      animation-play-state: paused;
+    }
+    #buttons button:focus-visible {
+      outline: 3px solid #3D2B24;
+      outline-offset: 3px;
+    }
+    #endBtn {
+      /* end-session is a quieter cream tag, not the primary coral action */
+      background: #FFF8F0;
+      color: #3D2B24;
+      border: 1px solid rgba(61, 43, 36, 0.22);
+      box-shadow: 0 5px 14px rgba(61, 43, 36, 0.18);
+      display: none;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.035); }
+    }
+
+    /* accessibility: no motion if the user asked for none */
+    @media (prefers-reduced-motion: reduce) {
+      #buttons button {
+        animation: none;
+        transition: none;
+      }
+      #startBtn:hover, #endBtn:hover,
+      #startBtn:active, #endBtn:active {
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="err"></div>
+  <div id="buttons">
+    <button id="startBtn" aria-label="Start session" onclick="window.startSession && window.startSession()">start ▸</button>
+    <button id="endBtn" aria-label="End session" onclick="window.endSession && window.endSession()">end</button>
+  </div>
+  <script>
+    function showErr(msg) {
+      var el = document.getElementById("err");
+      el.style.display = "block";
+      el.textContent += msg + "\n";
+    }
+    window.addEventListener("error", function (e) {
+      showErr("ERROR: " + (e.message || e.error));
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      showErr("PROMISE REJECTED: " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+    });
+  </script>
+  <script src="sketch.js?v=30"></script>
+</body>
+</html>
