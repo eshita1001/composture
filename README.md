@@ -19,7 +19,7 @@ Slouch and he slowly curls up, turns from grey to cooked pink, and looks scared.
 **For Apple Silicon Macs (M1/M2/M3/M4).** Grab `Composture.dmg` from the [Releases](../../releases) page.
 
 1. Open the `.dmg` and **drag Composture into Applications**.
-2. **First launch only:** right-click (or two-finger click) **Composture → Open → Open**. macOS asks you to confirm because the app is signed but not App-Store-notarized — normal for free apps.
+2. **First launch only** (macOS blocks unnotarized apps): open Composture from Applications — when it's blocked, go to **System Settings → Privacy & Security**, **scroll to the bottom**, and click **"Open Anyway"**, then **Open** to confirm. (On older macOS you can instead right-click **Composture → Open → Open**.) You only do this once.
 3. **Allow** camera access when prompted. Composture then lives in your **menu bar** (no dock icon).
 
 *(If you ever see a "damaged" message, run `xattr -cr /Applications/Composture.app` in Terminal, then reopen.)*
