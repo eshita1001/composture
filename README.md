@@ -16,7 +16,7 @@ Slouch and he slowly curls up, turns from grey to cooked pink, and looks scared.
 
 ## Download
 
-**For Apple Silicon Macs (M1/M2/M3/M4).** Grab the latest `Composture-*-arm64.dmg` from the [Releases](../../releases) page.
+**For Apple Silicon Macs (M1/M2/M3/M4).** Grab `Composture.dmg` from the [Releases](../../releases) page.
 
 1. Open the `.dmg` and **drag Composture into Applications**.
 2. **First launch only:** right-click (or two-finger click) **Composture → Open → Open**. macOS asks you to confirm because the app is signed but not App-Store-notarized — normal for free apps.
